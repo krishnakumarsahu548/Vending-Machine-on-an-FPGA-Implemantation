@@ -1,0 +1,54 @@
+`timescale 1ns / 1ps
+
+module VM (output reg delivered, L,K,C,M,I, 
+           output reg [8:0] total = 0,  
+           output reg [8:0] coin_out = 0, 
+           input rst, clk, proceed,
+           input a,b,c,d,e,  
+           input [8:0] coin_in 
+    );  
+         parameter idle = 3'd0,
+                   select_item = 3'd1, 
+                   review = 3'd2,  
+                   payment_status = 3'd3,
+                   refund = 3'd4; 
+         reg [2:0] state; 
+always @ (posedge clk) begin 
+   if (rst) begin 
+               state <= idle; L <= 1'b0; K <= 1'b0; C <= 1'b0; M <= 1'b0; I <= 1'b0; 
+               delivered <= 1'b0; coin_out <= 9'd0; total <= 9'd0; 
+            end 
+ else begin 
+             case (state) 
+  idle : begin 
+            L <= 1'b0; K <= 1'b0; C <= 1'b0; M <= 1'b0; I <= 1'b0;  
+            coin_out <= 9'd0; total <= 9'd0; delivered <= 1'b0; 
+            state <= select_item; end 
+ select_item : begin 
+            total <= (10 * a + 10 * b + 20 * c + 20 * d + 25 * e ); 
+          state <= review; end 
+  review: begin 
+          if (proceed) 
+             state <= payment_status; 
+         else 
+             state <= select_item; 
+         end 
+  payment_status: begin 
+           if (total<=coin_in) begin 
+           delivered <= 1'b1;  
+           {L,K,C,M,I} <= {a,b,c,d,e}; 
+            state <= refund; end 
+       else if (total> coin_in) begin 
+              delivered <= 1'b0; 
+              {L,K,C,M,I} <= 5'b0; 
+        coin_out <= coin_in; 
+        state <= payment_status; end 
+               end 
+  refund:  begin 
+           coin_out <= coin_in - total; 
+          state <= idle;  
+   end 
+  endcase 
+ end 
+ end 
+endmodule 
