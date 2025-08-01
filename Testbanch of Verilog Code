@@ -1,0 +1,64 @@
+`timescale 1ns / 1ps
+
+module tb; 
+    // Inputs 
+    reg rst, clk, proceed, a, b, c, d, e;  
+    reg [8:0] coin_in; // 9-bit match kiya VM module se
+    
+    // Outputs 
+    wire delivered, L, K, C, M, I; 
+    wire [8:0] total, coin_out; // 9-bit match kiya
+    
+    // Instantiate the Unit Under Test (UUT) 
+    VM uut (.delivered(delivered), .L(L), .K(K), .C(C), .M(M), .I(I),  
+             .total(total), .coin_out(coin_out), .rst(rst), .clk(clk),  
+             .proceed(proceed), .a(a), .b(b), .c(c), .d(d), .e(e),  
+             .coin_in(coin_in) 
+    ); 
+    
+    // Clock generation
+    always #10 clk = ~clk; 
+    
+    initial begin  
+        clk = 0; rst = 1; a = 0; b = 0; c = 0; d = 0; e = 0; 
+        proceed = 0; coin_in = 9'd0; 
+        
+        #20 rst = 0; // Reset release
+        
+        // Test Case 1: Select L (10) and D (20), total = 30, coin_in = 100
+        #20 a = 1; d = 1; c = 0; b = 0; e = 0; 
+        #20 coin_in = 9'd100; // Coin input pehle set karo
+        #20 proceed = 1; // Proceed ke baad wait
+        #60; // Enough time for state transition
+       
+        
+        // Reset for next test
+        #20 rst = 1; #20 rst = 0;
+        
+        // Test Case 2: Select L (10), D (20), E (25), total = 55, coin_in = 100
+        #20 a = 1; d = 1; e = 1; b = 0; c = 0; 
+        #20 coin_in = 9'd100; 
+        #20 proceed = 1; 
+        #40; 
+        
+        
+        // Test Case 3: Select L (10), D (20), E (25), total = 55, coin_in = 100
+        #20 a = 1; d = 1; e = 1; b = 1; c = 0; 
+        #20 coin_in = 9'd100; 
+        #20 proceed = 1; 
+        #40; 
+        
+        // Test Case 4: Select L (10), D (20), E (25), total = 55, coin_in = 100
+        #20 a = 0; d = 1; e = 1; b = 0; c = 1; 
+        #20 coin_in = 9'd100; 
+        #20 proceed = 1; 
+        #40; 
+        
+        // Test Case 5: Select L (10), D (20), E (25), total = 55, coin_in = 100
+        #20 a = 1; d = 1; e = 1; b = 1; c = 1; 
+        #20 coin_in = 9'd100; 
+        #20 proceed = 1; 
+        #40; 
+        #20 $finish; // End simulation
+    end      
+endmodule
